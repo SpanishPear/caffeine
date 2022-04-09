@@ -9,8 +9,8 @@ fn main() {
     let mut args = std::env::args().skip(1); // skip executable name
 
     let kernel_binary_path = {
-        let path = PathBuf::from(args.next().unwrap());
-        path.canonicalize().unwrap()
+        let path = PathBuf::from(args.next().expect("kernel binary path"));
+        path.canonicalize().expect("canonicalize failed");
     };
     let no_boot = if let Some(arg) = args.next() {
         match arg.as_str() {
@@ -34,15 +34,15 @@ fn main() {
         .arg(format!("format=raw,file={}", bios.display()));
     run_cmd.args(RUN_ARGS);
 
-    let exit_status = run_cmd.status().unwrap();
+    let exit_status = run_cmd.status().expect("command quemu-system-x86_64 failed - is it installed?");
     if !exit_status.success() {
         std::process::exit(exit_status.code().unwrap_or(1));
     }
 }
 
 pub fn create_disk_images(kernel_binary_path: &Path) -> PathBuf {
-    let bootloader_manifest_path = bootloader_locator::locate_bootloader("bootloader").unwrap();
-    let kernel_manifest_path = locate_cargo_manifest::locate_manifest().unwrap();
+    let bootloader_manifest_path = bootloader_locator::locate_bootloader("bootloader").expect("bootloader not found");
+    let kernel_manifest_path = locate_cargo_manifest::locate_manifest().expect("cargo manifest not found");
 
     let mut build_cmd = Command::new(env!("CARGO"));
     build_cmd.current_dir(bootloader_manifest_path.parent().unwrap());
