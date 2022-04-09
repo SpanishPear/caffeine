@@ -1,37 +1,24 @@
 #![no_std]
 #![no_main]
-#![feature(custom_test_frameworks)]
-#![test_runner(caffeine::test_runner)]
-#![reexport_test_harness_main = "test_main"]
 
-use caffeine::println; 
+use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
 
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
-    println!("Hello World{}", "!");
+entry_point!(kernel_main);
 
-    #[cfg(test)]
-    test_main();
+fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
+    // turn the screen gray
+    if let Some(framebuffer) = boot_info.framebuffer.as_mut() {
+        for byte in framebuffer.buffer_mut() {
+            *byte = 0x90;
+        }
+    }
 
     loop {}
 }
 
-/// This function is called on panic.
-#[cfg(not(test))]
+
 #[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
-    println!("{}", info);
+fn panic(_info: &PanicInfo) -> ! {
     loop {}
-}
-
-#[cfg(test)]
-#[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
-    caffeine::test_panic_handler(info)
-}
-
-#[test_case]
-fn trivial_assertion() {
-    assert_eq!(1, 1);
 }
