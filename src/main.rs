@@ -4,33 +4,31 @@
 #![test_runner(test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
-use bootloader::{entry_point, BootInfo};
-use core::panic::PanicInfo;
+//extern crate alloc;
+extern crate core;
 
-mod display;
-mod qemu;
+// macro use will export our macro across the crate
+#[macro_use]
 mod serial;
+mod video;
+mod qemu;
 mod tests;
 
+use bootloader::{entry_point, BootInfo};
+use core::panic::PanicInfo;
 use tests::Testable;
+use crate::video::Color;
+
 entry_point!(kernel_main);
 
 
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
-    clear_screen();
-    /*if let Some(framebuffer) = boot_info.framebuffer.as_mut() {
-        serial_println!("{:?}", framebuffer.info());
-        for (i, byte) in framebuffer.buffer_mut().into_iter().enumerate() {
-            let byte_pos = i % 4;
-            match byte_pos {
-                0 => *byte = 255,
-                1 => *byte = 204,
-                2 => *byte = 255,
-                3 => *byte = 00,
-                _ => unreachable!(),
-            }
-        }
-    }*/
+    video::init_graphics(boot_info.framebuffer.as_mut().unwrap());
+
+    video::clear_screen();
+    video::draw_rect(300, 300, 150, 150, Color::hex(0xFFC0CB));
+    video::draw_line(10, 10, 300, 420, Color::hex(0xA020F0));
+    video::draw_line_horizontal(5, 5, 300, Color::from(255, 0, 0));
 
     serial_println!("{:?}", boot_info);
 
@@ -38,10 +36,6 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     test_main();
 
     loop {}
-}
-
-fn clear_screen() {
-    display::FRAME_BUFFER.lock().clear();
 }
 
 pub fn test_runner(tests: &[&dyn Testable]) {
