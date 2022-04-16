@@ -1,4 +1,4 @@
-use crate::{serial_print, serial_println};
+use crate::{kprint, kprintln};
 
 pub trait Testable {
     fn run(&self);
@@ -9,9 +9,9 @@ where
     T: Fn(),
 {
     fn run(&self) {
-        serial_print!("{}...\t", core::any::type_name::<T>());
+        kprint!("{}...\t", core::any::type_name::<T>());
         self();
-        serial_println!("[ok]");
+        kprintln!("[ok]");
     }
 }
 #[cfg(test)]
