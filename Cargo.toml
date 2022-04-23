@@ -23,3 +23,7 @@ conquer-once = { version = "0.3.2", default-features = false }
 [package.metadata.bootloader]
 map-framebuffer = true
 framebuffer-address = 0xA0000
+
+[[test]]
+name = "stack_overflow"
+harness = false

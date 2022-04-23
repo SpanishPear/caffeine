@@ -11,6 +11,8 @@ pub mod drivers;
 pub mod video;
 pub mod tests;
 
+use core::panic::PanicInfo;
+
 use tests::Testable;
 use drivers::{
         interrupts::init_idt,
@@ -19,8 +21,14 @@ use drivers::{
 
 pub fn init() {
     init_idt();
+    drivers::interrupts::gdt::init_gdt();
 }
 
+pub fn test_panic_handler(info: &PanicInfo) -> ! {
+    kprintln!("[failed]\n");
+    kprintln!("Error: {}\n", info);
+    exit_qemu(QemuExitCode::Failed)
+}
 
 
 pub fn test_runner(tests: &[&dyn Testable]) {
